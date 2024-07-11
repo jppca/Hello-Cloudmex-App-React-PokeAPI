@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-//My imports
+// My imports
 import './index.css';
 import { PokemonCards } from "./components/PokemonCards";
 import { Header } from "./components/Header";
@@ -11,7 +11,7 @@ import { SearchNum } from "./components/SearchNum";
 import { SearchNom } from "./components/SearchNom";
 import { NoPokemon } from "./components/NoPokemon";
 
-//API
+// API
 const baseUrlAPI = "https://pokeapi.co/api/v2/pokemon";
 
 export function App() {
@@ -21,9 +21,11 @@ export function App() {
 	const [searchPokemon, setsearchPokemon] = useState("")
 	const [isSearch, setIsSearchNum] = useState(false)
 	const [subtitle] = useState('¡llévele, llévele!');
-	const [noPokemon] = useState('LLAMA POKÉMONES');
+	const [noPokemon, setnoPokemon] = useState('LLAMA POKÉMONES');
+	const [error, setError] = useState('');
 
-	//Consulta de API por número de pokemones 
+
+	// Consulta de API por número de pokemones
 	const loadDataNum = (num) => {
 		axios.get(`${baseUrlAPI}?limit=${num}`)
 			.then(response => {
@@ -36,15 +38,19 @@ export function App() {
 			})
 	}
 
-	//Consulta de API por nombre de pokemon
+	// Consulta de API por nombre de pokemon
 	const loadDataSearch = (name) => {
 		axios.get(`${baseUrlAPI}/${name}`)
 			.then(response => {
 				setPokemonList(prevArray => [...prevArray, response.data])
-			})
+			}).catch(error => {
+				setIsSearchNum(false)
+				setnoPokemon('NO HAY RESULTADOS')
+				setError(error.message.toUpperCase())
+			});
 	}
 
-	//Ejecución de consulta de API por nombre
+	// Ejecución de consulta de API por nombre
 	const onSearchPokemon = () => {
 		if (searchPokemon === "") {
 			setIsSearchNum(false)
@@ -57,16 +63,16 @@ export function App() {
 		}
 	}
 
-	//Ejecución de consulta de API por número de pokemones
+	// Ejecución de consulta de API por número de pokemones
 	const onSearchNum = () => {
-		//Validación para evitar números menores a 0	
+		// Validación para evitar números menores a 0
 		if (numPokemon <= 0) {
 			setIsSearchNum(false)
 			setPokemonList([])
 		} else {
 			setIsSearchNum(true)
 			setPokemonList([])
-			//Validación para traer un máximo de 50 Pokémones		
+			// Validación para traer un máximo de 50 Pokémones
 			if (numPokemon > 50) {
 				loadDataNum(50)
 			} else {
@@ -75,24 +81,24 @@ export function App() {
 		}
 	}
 
-	//botón acarreador de pokémones
+	// Botón acarreador de pokémones
 	const onClickNum = async (e) => {
 		onSearchNum();
 		setsearchPokemon("");
 	}
 
-	//data en input
+	// Data en input
 	const numPokemons = async (e) => {
 		setNumPokemon(e.target.value);
 	}
 
-	//botón buscador de pokémones por nombre
+	// Botón buscador de pokémones por nombre
 	const onClickSearch = async (e) => {
 		onSearchPokemon();
 		setNumPokemon(0);
 	}
 
-	//data in input
+	// Data in input
 	const searchPokemons = async (e) => {
 		setsearchPokemon(e.target.value);
 	}
@@ -103,7 +109,7 @@ export function App() {
 			<SearchNum onClickNum={onClickNum} numPokemon={numPokemon} numPokemons={numPokemons} />
 			<SearchNom onClickSearch={onClickSearch} searchPokemon={searchPokemon} searchPokemons={searchPokemons} />
 			{
-				isSearch ? <PokemonCards pokemones={pokemonList} /> : <NoPokemon data={noPokemon} />
+				isSearch ? <PokemonCards pokemones={pokemonList} /> : <NoPokemon data={noPokemon} error={error} />
 			}
 			<Footer />
 		</div>
